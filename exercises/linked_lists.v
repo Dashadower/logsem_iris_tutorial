@@ -64,9 +64,20 @@ Proof.
     wp_rec.
     wp_pures.
     by iApply "HΦ".
-  - (* Induction step: xs = x :: xs' *)
-    (* exercise *)
-Admitted.
+  - (* Induction step: xs = x :: xs' *) 
+    intros.
+    iIntros "H1".
+    iDestruct "H1" as (hd l' P) "[H1 H2]".
+    iIntros "H3".
+    subst.
+    wp_rec.
+    wp_pures.
+    wp_load.
+    wp_pures. wp_load. wp_pures. wp_store.
+    wp_apply (IH with "[H2]").
+    + iApply "H2".
+    + iIntros "H4". iApply "H3". iFrame. done.
+Qed.
 
 (**
   The append function recursively descends [l1], updating the links.
@@ -97,8 +108,22 @@ Lemma append_spec (l1 l2 : val) (xs ys : list val) :
 Proof.
   revert ys l1 l2.
   induction xs as [| x xs' IH]; simpl.
-  (* exercise *)
-Admitted.
+  - intros.
+    iIntros "[%H H1]". subst.
+    iIntros "H2". wp_rec.
+    wp_let. wp_pure. wp_pure. wp_pure. iModIntro. iApply "H2". iFrame.
+  - intros. iIntros "H1". iDestruct "H1" as "[H1 H2]".
+    iDestruct "H1" as (hd l') "[%H1 [H3 H4]]".
+    iIntros "H5". subst.
+    wp_rec.
+    wp_let. wp_pure. wp_let. wp_load. wp_pure. wp_let. wp_load. wp_pure. wp_let.
+    wp_apply (IH with "[H2 H4]").
+    + iFrame.
+    + iIntros "%l Hl".
+      wp_let. wp_pures. wp_store. wp_pure. iModIntro. iApply "H5".
+      iExists hd, l.
+      iFrame. done.
+Qed.
 
 (**
   We will implement reverse using a helper function called
@@ -130,8 +155,21 @@ Lemma reverse_append_spec (l acc : val) (xs ys : list val) :
 Proof.
   revert l acc ys.
   induction xs as [| x xs' IH]; simpl.
-  (* exercise *)
-Admitted.
+  - intros l acc ys Φ.
+    iIntros "[%H1 H2]". subst. iIntros "H1".
+    wp_rec. wp_let. wp_match. iModIntro. iApply "H1". iFrame.
+  - intros l acc ys Φ.
+    iIntros "[(%hd & (%l' & (%H1 & H2 & H3))) H4]".
+    iIntros "H5". wp_rec. wp_let. rewrite H1. wp_match. wp_load. wp_proj.
+    wp_let. wp_load. wp_proj. wp_let. wp_store.
+    iAssert (isList (InjRV #hd) (x :: ys))%I with "[H2 H4]" as "H1". {
+      simpl. iExists hd. iExists acc. iFrame. iPureIntro. reflexivity.
+    }
+    wp_apply (IH with "[H1 H3]"). 
+    + iFrame.
+    + iIntros "%v". iIntros "H1". iApply "H5". rewrite cons_middle. rewrite <- app_assoc.
+      iApply "H1".
+Qed.
 
 (**
   Now, we use the specification of [reverse_append] to prove the
@@ -142,8 +180,19 @@ Lemma reverse_spec (l : val) (xs : list val) :
     reverse l
   {{{ v, RET v; isList v (rev xs) }}}.
 Proof.
-  (* exercise *)
-Admitted.
+  unfold reverse.
+  intros.
+  iIntros "H1". iIntros "H2".
+  wp_rec. wp_pures.
+  wp_apply (reverse_append_spec with "[H1]").
+  - iSplitL.
+    + iFrame.
+    + iAssert (isList (InjLV #()) [])%I as "H1". {
+        simpl. iPureIntro. reflexivity.
+      }
+      iApply "H1".
+  - simpl. rewrite app_nil_r. iApply "H2".
+Qed.
 
 (**
   The specifications thus far have been rather straightforward. Now we
@@ -199,9 +248,22 @@ Lemma fold_right_spec P I (f a l : val) xs :
 Proof.
   revert a l.
   induction xs as [|x xs IHxs].
-  all: simpl.
-  (* exercise *)
-Admitted.
+  all: simpl; intros.
+  - iIntros "[%H1 [_ [H3 #H4]]]". iIntros "H5".
+    subst. wp_rec. wp_let. wp_pures. iModIntro. iApply "H5".
+    iFrame. iPureIntro. reflexivity.
+  - iIntros "[(%hd & (%l' & (%H1 & H2 & H3))) ((H4 & H5) & H6 & #H7)]".
+    subst.
+    iIntros "H8".
+    wp_rec. wp_let. wp_pures. wp_load. wp_pures.
+    wp_load. wp_pures. wp_apply (IHxs with "[H3 H5 H6]").
+    + iFrame. iApply "H7".
+    + iIntros "%r". iIntros "[H9 H10]".
+      wp_apply ("H7" with "[H4 H10]").
+      * iFrame.
+      * iIntros "%r0". iIntros "H10". iApply "H8".
+        iFrame. iPureIntro. reflexivity.
+Qed.
 
 (**
   We can now sum over a list simply by folding an addition function over
