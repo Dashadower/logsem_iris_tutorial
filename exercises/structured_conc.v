@@ -452,7 +452,20 @@ Proof.
       by apply Zeven_plus_Zeven.
     }
     by iApply "HΦ'".
-  (* exercise *)
-Admitted.
+  - iIntros "%Φ'". iIntros "!> Htrue H".
+    iInv "I" as "(%n & Hr & >%Hn)".
+    wp_faa.
+    iModIntro.
+    iSplitL "Hr".
+    + iExists (n + 6)%Z.
+      iFrame. iPureIntro. apply Zeven_plus_Zeven; done.
+    + iApply "H". iFrame.
+  - done.
+  - iIntros "%v1 %v2 [HT1 HT2]". wp_seq.
+    iInv "I" as "(%n & Hr & >%Hn)".
+    wp_load. iModIntro. iSplitL "Hr".
+    + iExists (n)%Z. iModIntro. iFrame. iPureIntro. assumption.
+    + iApply "HΦ". iPureIntro. assumption.
+Qed.
 
 End parallel_add.

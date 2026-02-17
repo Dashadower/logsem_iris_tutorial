@@ -214,7 +214,7 @@ Proof.
     Even though we have now closed the invariant, the fancy
     update modality still prevents us from opening the invariant.
     However, we can always introduce a fancy update modality with
-    [iModIntro].
+    [iModIntro]. OMG
     *)
   iModIntro.
   (**
@@ -359,8 +359,11 @@ Proof.
     }
     (** ... and finish the proof of the forked thread. *)
     done.
-  - (* exercise *)
-Admitted.
+  - wp_pures. iInv "Hinv" as "(%v & Hl & #H)".
+    wp_load. iSplitL "Hl".
+    + iModIntro. iModIntro. iExists v. iFrame. iFrame "#".
+    + iModIntro. iApply "HΦ". iApply "H".
+Qed.
 
 End proofs.
 

@@ -152,6 +152,8 @@ Proof.
     Open the invariant, strip the later from the equality (achieved by
     [">"]), and rewrite with the equality (achieved by ["->"]).
   *)
+  (* iInv "Hinv" as "[>%H H2]".
+  rewrite H. *)
   iInv "Hinv" as "[>-> HP]".
   wp_cmpxchg_suc.
   iSplitL "HP"; first by iFrame.
