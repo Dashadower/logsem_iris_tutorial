@@ -133,8 +133,19 @@ Lemma inc_spec a l :
     inc #a #(length l)
   {{{RET #(); a ↦∗ ((λ i : Z, #(i + 1)) <$> l)}}}.
 Proof.
-  (* exercise *)
-Admitted.
+  intros.
+  iIntros "H1 H2".
+  iLöb as "IH" forall (a l).
+  wp_rec. wp_let.
+  destruct l.
+  - wp_pures. iModIntro. iApply "H2". simpl. iFrame.
+  - wp_pures. rewrite !array_cons. iDestruct "H1" as "[H1 H3]".
+    wp_load. wp_pures. wp_store. wp_pures. 
+    rewrite Nat2Z.inj_succ Z.sub_1_r Z.pred_succ.
+    wp_apply ("IH" with "[H3]").
+    + iFrame.
+    + iIntros "H3". iApply "H2". iFrame.
+Qed.
 
 (* ================================================================= *)
 (** ** Reverse *)
@@ -165,7 +176,8 @@ Lemma reverse_spec a l :
     reverse #a #(length l)
   {{{RET #(); a ↦∗ rev l}}}.
 Proof.
-  (* exercise *)
+  intros.
+  iIntros "H1". iIntros "H2".
 Admitted.
 
 End proofs.
