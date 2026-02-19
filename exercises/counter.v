@@ -546,7 +546,9 @@ Proof.
     iPoseProof (update_state with "[Hγ Hγ']") as ">Hupdate". {
     iSplitL "Hγ". { iApply "Hγ". }
     iApply "Hγ'".
-    } iModIntro. iDestruct "Hupdate" as "(Hauth & Hfrag)".
+    }
+    (* iMod "Hupdate". *)
+    iModIntro. iDestruct "Hupdate" as "(Hauth & Hfrag)".
     iSplitL "Hl Hauth".
     + iExists (S m). iNext. rewrite Nat2Z.inj_succ. iFrame.
     + wp_pures. iApply "HΦ".
